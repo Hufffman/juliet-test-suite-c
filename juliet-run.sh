@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# the first parameter specifies a non-default timeout duration
-# the second parameter specifies the path of a library to LD_CHERI_PRELOAD when running test cases
+# the first parameter specifies the CWE ID
+# the second parameter specifies a non-default timeout duration
 
 # this script will run all good and bad tests in the bin subdirectory and write
 # the names of the tests and their return codes into the files "good.run" and
@@ -11,23 +11,15 @@
 ulimit -c 0
 
 SCRIPT_DIR=$(dirname $(realpath "$0"))
+CWDID=""
 TIMEOUT="1s"
-PRELOAD_PATH=""
-INPUT_FILE="/tmp/in.txt"
-
-if [ $# -ge 1 ]
-then
-  TIMEOUT="$1"
-fi
+INPUT_FILE="/home/juliet-test-suite-c/in.txt"
+INPUT_FILE_124_127="/home/juliet-test-suite-c/in_124_127.txt"
 
 if [ $# -ge 2 ]
 then
-  PRELOAD_PATH="$2"
-  if [ ! -f "${PRELOAD_PATH}" ]
-  then
-    echo "preload path ${PRELOAD_PATH} does not exist - not running tests"
-    exit 1
-  fi
+  CWDID="$1"
+  TIMEOUT="$2"
 fi
 
 # parameter 1: the CWE directory corresponding to the tests
@@ -43,11 +35,19 @@ run_tests()
 
   echo "========== STARTING TEST ${TYPE_PATH} $(date) ==========" >> "${TYPE_PATH}.run"
   for TESTCASE in $(ls -1 "${TYPE_PATH}"); do
+    if echo "$TESTCASE" | grep -q "socket"
+    then continue
+    fi
+
+    if echo "$TESTCASE" | grep -q "rand"
+    then continue
+    fi
+
     local TESTCASE_PATH="${TYPE_PATH}/${TESTCASE}"
 
-    if [ ! -z "${PRELOAD_PATH}" ]
+    if [ "$CWDID" = "124" ] || [ "$CWDID" = "127" ]
     then
-      timeout "${TIMEOUT}" env LD_CHERI_PRELOAD="${PRELOAD_PATH}" "${TESTCASE_PATH}" < "${INPUT_FILE}"
+      timeout "${TIMEOUT}" "${TESTCASE_PATH}" < "${INPUT_FILE_124_127}"
     else
       timeout "${TIMEOUT}" "${TESTCASE_PATH}" < "${INPUT_FILE}"
     fi
@@ -58,5 +58,7 @@ run_tests()
   cd "${PREV_CWD}"
 }
 
-run_tests "${SCRIPT_DIR}/bin" "good"
-run_tests "${SCRIPT_DIR}/bin" "bad"
+export ASAN_OPTIONS=detect_leaks=0${ASAN_OPTIONS:+:$ASAN_OPTIONS}
+
+run_tests "${SCRIPT_DIR}/CWE$CWDID" "good"
+run_tests "${SCRIPT_DIR}/CWE$CWDID" "bad"

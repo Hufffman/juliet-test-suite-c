@@ -4,7 +4,15 @@ cmake_minimum_required(VERSION 3.6)
 get_filename_component(CWE_FOLDER "${CMAKE_SOURCE_DIR}" NAME)
 string(REGEX MATCH "^CWE[0-9]+" CWE_NAME "${CWE_FOLDER}")
 
+# Set the C and C++ compilers
+set(CMAKE_C_COMPILER "/usr/bin/clang-4.0")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++-4.0")
+
 project("juliet-c-${CWE_NAME}")
+
+# Set the C and C++ compiler flags
+set(CMAKE_C_FLAGS "-fsanitize=address -fsanitize-recover=address")
+set(CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize-recover=address")
 
 # prevent cmake from setting -O2 (for release, relwithdebinf, minsizerel, etc)
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g")

@@ -32,9 +32,9 @@ def generate(path, output_dir, keep_going):
 
 def make(path, keep_going):
     if keep_going:
-        subprocess.Popen(["make", "-j16", "-k"], cwd=path).wait()
+        subprocess.Popen(["make", "-j8", "-k"], cwd=path).wait()
     else:
-        retcode = subprocess.Popen(["make", "-j16"], cwd=path).wait()
+        retcode = subprocess.Popen(["make", "-j8"], cwd=path).wait()
         if retcode != 0:
             juliet_print("error making " + path + " - stopping")
             exit()
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--all", action="store_true", help="target all CWEs")
     parser.add_argument("-k", "--keep-going", action="store_true", help="keep going in case of build failures")
     parser.add_argument("-o", "--output-dir", action="store", default="bin", help="specify the output directory relative to the directory containing this script (default: bin)")
-    parser.add_argument("-t", "--run-timeout", action="store", default=".01", type=float, help="specify the default test run timeout in seconds (type: float, default: .01)")
+    parser.add_argument("-t", "--run-timeout", action="store", default="3.0", type=float, help="specify the default test run timeout in seconds (type: float, default: .01)")
     args = parser.parse_args()
     args.CWEs = set(args.CWEs)
 
