@@ -10,16 +10,43 @@ To run executables after they are built, `juliet.py` invokes the `juliet-run.sh`
 
 ## Running Sample
 
-Clean, build, compile, run tests
+Clean, build, compile, run tests.
 
 ``` shell
 python3 juliet.py 121 122 124 126 127 -o ./bin -c -g -m -r
 ```
 
-Statistical test results
+Statistical test results.
 
 ``` shell
-python3 parse-cwe-status.py ./bin/CWE121/bad.run
+python3 parse-cwe-status.py ./bin/CWE126/bad.run
+```
+
+A example of statistical results is as follows. The test CWE170_char_* prints a string without the terminating character `\0`, which will produce random results.
+
+``` shell
+===== EXIT STATUS =====
+OK            16
+1            710
+
+===== DATAFLOW VARIANTS =====
+ VAR         OK         1
+  1:          1        17
+  2:          1        17
+...
+
+===== FUNCTIONAL VARIANTS =====
+                                      OK         1
+CWE129_fgets                           0        48
+CWE129_fscanf                          0        48
+CWE129_large                           0        48
+CWE170_char_loop                      10         8
+CWE170_char_memcpy                     3        15
+CWE170_char_strncpy                    3        15
+char_alloca_loop                       0        40
+char_alloca_memcpy                     0        40
+char_alloca_memmove                    0        40
+...
 ```
 
 ## Modify dataset
@@ -68,7 +95,7 @@ fi
 
 ## Process the datasets that require input
 
-It is consistent with [test script of FloatZone](https://github.com/vusec/instrumentation-infra/blob/5bfbf68e0cfe46cf9600a0bcf4fa7a4a2fd80e48/infra/targets/juliet.py). For general input, `11` is uniformly passed in by reading the file. For underflow reading and writing (CWE124, CWE127) Pass in `-1` uniformly by reading files
+It is consistent with [test script of FloatZone](https://github.com/vusec/instrumentation-infra/blob/5bfbf68e0cfe46cf9600a0bcf4fa7a4a2fd80e48/infra/targets/juliet.py). For general input, `11` is uniformly passed in by reading the file. For underflow reading and writing (CWE124, CWE127) Pass in `-1` uniformly by reading files.
 
 ``` bash
 if [ "$CWDID" = "124" ] || [ "$CWDID" = "127" ]
