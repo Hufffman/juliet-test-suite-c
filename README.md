@@ -8,11 +8,84 @@ To run executables after they are built, `juliet.py` invokes the `juliet-run.sh`
 
 **Note:** Juliet C++ test cases that use namespace std and the bind() socket function didn't compile under c++11, which introduces std::bind(). This version of the test suite has replaced `bind()` calls in C++ source files with calls to `::bind()`.
 
-## Running tests on CheriBSD
+## Running Sample
 
-TODO
+Clean, build, compile, run tests
 
-To run the tests on CHERI you can use [cheribuild](https://github.com/CTSRD-CHERI/cheribuild):
-`cheribuild.py juliet-c-cheri --build-and-test` will build and run the tests (assuming you have built the SDK and a CheriBSD image first).
+``` shell
+python3 juliet.py 121 122 124 126 127 -o ./bin -c -g -m -r
+```
 
-You can also manually mount the built `bin` subdirectory on a CheriBSD host and use the `juliet-run.sh` script directly to run tests.
+Statistical test results
+
+``` shell
+python3 parse-cwe-status.py ./bin/CWE121/bad.run
+```
+
+## Modify dataset
+
+In order to ensure that the same test results can be obtained every time JTS is run as much as possible, the impact of the random number rand() needs to be removed, so the return value of globalReturnsTrueOrFalse() is changed to `1` (JTS flow variant 12 will call this function).
+
+``` C
+int globalReturnsTrueOrFalse() 
+{
+    // return (rand() % 2);
+    return 1;
+}
+```
+
+## Compiler settings
+
+Set the compiler and enable the AddressSanitizer compilation option.
+
+``` bash
+# Set the C and C++ compilers
+set(CMAKE_C_COMPILER "/usr/bin/clang-4.0")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++-4.0")
+
+project("juliet-c-${CWE_NAME}")
+
+# Set the C and C++ compiler flags
+set(CMAKE_C_FLAGS "-fsanitize=address -fsanitize-recover=address")
+set(CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize-recover=address")
+```
+
+## Filter dataset
+
+In order to ensure that the same test results can be obtained every time JTS is run as much as possible, the following two tests are filtered out:
+1. Tests whose names contain `socket` need to be run on both the client and the server. They are not suitable for AddressSanitizer tests and will bring uncertain timeouts, resulting in inconsistent test results.
+2. Tests whose names contain `rand` will also cause inconsistent test results due to the existence of random numbers.
+
+``` bash
+if echo "$TESTCASE" | grep -q "socket"
+then continue
+fi
+
+if echo "$TESTCASE" | grep -q "rand"
+then continue
+fi
+```
+
+## Process the datasets that require input
+
+It is consistent with [test script of FloatZone](https://github.com/vusec/instrumentation-infra/blob/5bfbf68e0cfe46cf9600a0bcf4fa7a4a2fd80e48/infra/targets/juliet.py). For general input, `11` is uniformly passed in by reading the file. For underflow reading and writing (CWE124, CWE127) Pass in `-1` uniformly by reading files
+
+``` bash
+if [ "$CWDID" = "124" ] || [ "$CWDID" = "127" ]
+then
+    timeout "${TIMEOUT}" "${TESTCASE_PATH}" < "${INPUT_FILE_124_127}"
+else
+    timeout "${TIMEOUT}" "${TESTCASE_PATH}" < "${INPUT_FILE}"
+fi
+```
+
+## Improve the compatibility of statistics scripts
+
+The statistical script uses some data structures of higher versions of python3, which are not supported by lower versions of python3. Additional packages need to be imported and the original data structures replaced.
+
+``` python
+from typing import List, Dict, Tuple
+...
+def do_parsing(filename: str) -> Tuple[str, Dict[int, List[int]], Dict[str, Dict[int, int]]]:
+    ...
+```
