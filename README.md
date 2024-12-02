@@ -22,27 +22,24 @@ Statistical test results.
 python3 parse-cwe-status.py ./bin/CWE126/bad.run
 ```
 
-A example of statistical results is as follows. The test CWE170_char_* prints a string without the terminating character `\0`, which will produce random results.
+A example of statistical results is as follows.
 
 ``` shell
 ===== EXIT STATUS =====
-OK            16
-1            710
+OK            25
+1            647
 
 ===== DATAFLOW VARIANTS =====
  VAR         OK         1
-  1:          1        17
-  2:          1        17
+  1:          1        14
+  2:          1        14
 ...
 
 ===== FUNCTIONAL VARIANTS =====
                                       OK         1
 CWE129_fgets                           0        48
 CWE129_fscanf                          0        48
-CWE129_large                           0        48
-CWE170_char_loop                      10         8
-CWE170_char_memcpy                     3        15
-CWE170_char_strncpy                    3        15
+CWE129_large                          25        23
 char_alloca_loop                       0        40
 char_alloca_memcpy                     0        40
 char_alloca_memmove                    0        40
@@ -79,9 +76,10 @@ set(CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize-recover=address")
 
 ## Filter dataset
 
-In order to ensure that the same test results can be obtained every time JTS is run as much as possible, the following two tests are filtered out:
+In order to ensure that the same test results can be obtained every time JTS is run as much as possible, the following three tests are filtered out:
 1. Tests whose names contain `socket` need to be run on both the client and the server. They are not suitable for AddressSanitizer tests and will bring uncertain timeouts, resulting in inconsistent test results.
 2. Tests whose names contain `rand` will also cause inconsistent test results due to the existence of random numbers.
+3. Tests whose names contian `CWE170_char_*` prints a string without the terminating character `\0`, which will produce random overflow.
 
 ``` bash
 if echo "$TESTCASE" | grep -q "socket"
@@ -89,6 +87,10 @@ then continue
 fi
 
 if echo "$TESTCASE" | grep -q "rand"
+then continue
+fi
+
+if echo "$TESTCASE" | grep -q "CWE170"
 then continue
 fi
 ```
