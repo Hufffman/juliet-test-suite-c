@@ -4,7 +4,7 @@
 import sys, os, re, argparse, shutil, subprocess, pathlib
 
 
-root_dir = str(pathlib.Path(__file__).parent)
+root_dir = str(pathlib.Path(__file__).parent.absolute())
 
 
 def juliet_print(string):
@@ -41,7 +41,7 @@ def make(path, keep_going):
 
 
 def run(CWE, output_dir, timeout):
-    subprocess.Popen([root_dir + "/" + output_dir + "/juliet-run.sh", str(CWE), timeout]).wait()
+    subprocess.Popen([output_dir + "/juliet-run.sh", str(CWE), timeout, root_dir]).wait()
 
 
 if __name__ == "__main__":

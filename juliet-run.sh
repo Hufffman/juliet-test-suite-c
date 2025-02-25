@@ -13,8 +13,8 @@ ulimit -c 0
 SCRIPT_DIR=$(dirname $(realpath "$0"))
 CWDID=""
 TIMEOUT="1s"
-INPUT_FILE="/home/juliet-test-suite-c/in.txt"
-INPUT_FILE_124_127="/home/juliet-test-suite-c/in_124_127.txt"
+INPUT_FILE="$3/in.txt"
+INPUT_FILE_124_127="$3/in_124_127.txt"
 
 if [ $# -ge 2 ]
 then

@@ -4,3 +4,4 @@ testcases/*/CMakeCache.txt
 testcases/*/cmake_install.cmake
 testcases/*/Makefile
 testcases/*/CMakeFiles/
+.vscode/
