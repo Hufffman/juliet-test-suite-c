@@ -1,6 +1,6 @@
 # Juliet Test Suite for C/C++
 
-This is the Juliet Test Suite for C/C++ version 1.3 from https://samate.nist.gov/SARD/testsuite.php augmented with a build system for Unix-like OSes that supports automatically building test cases into individual executables and running those tests. The build system originally provided with the test suite supports building all test cases for a particular [CWE](https://cwe.mitre.org/) into a monolithic executable. Building individual test cases supports the evaluation of projects like [CHERI](https://www.cl.cam.ac.uk/research/security/ctsrd/cheri/) that facilitate memory safety for C/C++ programs at runtime. 
+This is the Juliet Test Suite for C/C++ version 1.3 from https://samate.nist.gov/SARD/testsuite.php augmented with a build system for Unix-like OSes that supports automatically building test cases into individual executables and running those tests. The build system originally provided with the test suite supports building all test cases for a particular [CWE](https://cwe.mitre.org/) into a monolithic executable. Building individual test cases supports the evaluation of projects like ASan that facilitate memory safety for C/C++ programs at runtime. 
 
 Testcases are organized by CWE in the `testcases` subdirectory. `juliet.py` is the main script that supports building and running individual test cases - individual CWEs or the entire test suite can be targeted. To build executables, `juliet.py` copies `CMakeLists.txt` into the directories for targeted CWEs and runs cmake followed by make. Output appears by default in a `bin` subdirectory. Each targeted CWE has a `bin/CWEXXX` directory that is further divided into `bin/CWEXXX/good` and `bin/CWEXXX/bad` subdirectories. For each test case, a "good" binary that does not contain the error is built and placed into the good subdirectory and a "bad" binary that contains the error is built and placed into the bad subdirectory.
 
@@ -79,7 +79,8 @@ set(CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize-recover=address")
 In order to ensure that the same test results can be obtained every time JTS is run as much as possible, the following three tests are filtered out:
 1. Tests whose names contain `socket` need to be run on both the client and the server. They are not suitable for AddressSanitizer tests and will bring uncertain timeouts, resulting in inconsistent test results.
 2. Tests whose names contain `rand` will also cause inconsistent test results due to the existence of random numbers.
-3. Tests whose names contian `CWE170_char_*` prints a string without the terminating character `\0`, which will produce random overflow.
+3. Tests whose names contian `CWE170` prints a string without the terminating character `\0`, which will produce random overflow.
+4. Tests whose names contian `sizeof_` trigger errors on 32-bit systems but not on 64-bit systems.
 
 ``` bash
 if echo "$TESTCASE" | grep -q "socket"
@@ -91,6 +92,10 @@ then continue
 fi
 
 if echo "$TESTCASE" | grep -q "CWE170"
+then continue
+fi
+
+if echo "$TESTCASE" | grep -q "sizeof_"
 then continue
 fi
 ```

@@ -47,6 +47,10 @@ run_tests()
     then continue
     fi
 
+    if echo "$TESTCASE" | grep -q "sizeof_"
+    then continue
+    fi
+
     local TESTCASE_PATH="${TYPE_PATH}/${TESTCASE}"
 
     if [ "$CWDID" = "124" ] || [ "$CWDID" = "127" ]
